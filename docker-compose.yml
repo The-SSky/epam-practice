@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  db:
+    container_name: pg
+    image: postgres:12.6
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    networks: 
+      - practice_net
+
+  practice-py:
+    container_name: practice-py
+    build:
+      context: ./practice_python
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    volumes:
+        - ./practice_python:/practice
+    networks: 
+      - practice_net
+
+  graf:
+    container_name: gr
+    image: grafana/grafana
+    user: "$UID:$GID"
+    depends_on:
+      - practice-py
+    ports: 
+      - "3000:3000"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+    networks: 
+      - practice_net   
+
+networks: 
+  practice_net:
+    driver: bridge
